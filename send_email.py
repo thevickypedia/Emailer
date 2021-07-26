@@ -1,6 +1,9 @@
+from _curses import error
 from datetime import datetime
 from os import environ, path, system
 from re import match
+
+from pick import pick
 
 date = datetime.now().strftime("%B %d %Y %I:%M %p")
 
@@ -26,9 +29,9 @@ if not check(email=target):
     exit('Invalid email address received.')
 
 default_sub = f"This is the subject line sent at {date}"
-subject = input(f'Enter the subject of the email:\t(Hit return to default to {default_sub})\n')
-if not subject:
-    subject = default_sub
+sub = input(f'Enter the subject of the email:\t(Hit return to default to {default_sub})\n')
+if not sub:
+    sub = default_sub
 
 body = input('Enter body of the email:\n')
 if not body:
@@ -37,15 +40,24 @@ if not body:
 attachment = input('Enter the name of the attachment file:\t(Hit return for None)\n')
 
 if attachment and attachment.endswith('.html') and path.isfile(attachment):
-    cmd = f"echo '{body}' | mail -s '{subject}' --alternative --content-type=text/html --attach={attachment} {target}"
+    cmd = f"echo '{body}' | mail -s '{sub}' --alternative --content-type=text/html --attach={attachment} {target}"
 elif attachment and path.isfile(attachment):
-    cmd = f"echo '{body}' | mail -s '{subject}' --content-type=text/plain --attach={attachment} {target}"
+    title = "Please pick an attachment type: "
+    options = ['Inlined attachment', 'File attachment']
+    try:
+        option, index = pick(options, title, indicator='=>', default_index=0)
+    except error:
+        index = 1
+    if not index:
+        cmd = f"echo '{body}' | mail -s '{sub}' --alternative --content-type=text/plain --attach={attachment} {target}"
+    else:
+        cmd = f"echo '{body}' | mail -s '{sub}' --content-type=text/plain --attach={attachment} {target}"
 else:
-    cmd = f"echo '{body}' | mail -s '{subject}' {target}"
+    cmd = f"echo '{body}' | mail -s '{sub}' {target}"
 
 response = system(cmd)
 
 if response == 0:
-    print('Email has been delivered.')
+    print(f'Email has been sent to {target}.')
 else:
     print('Email Undelivered.' + '\n' + str(response))
