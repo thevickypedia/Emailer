@@ -1,11 +1,10 @@
 from datetime import datetime
-from os import system, environ
-from platform import system as os
-
-if os() != 'Linux':
-    exit('mailutils can only run on linux machines.')
+from os import environ, system
+from re import match
 
 date = datetime.now().strftime("%B %d %Y %I:%M %p")
+
+regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
 
 default_id = environ.get('recipient')
 target = input(f'Enter the email address:\t(Hit return to default to {default_id})\n')
@@ -13,8 +12,18 @@ target = input(f'Enter the email address:\t(Hit return to default to {default_id
 if not target:
     target = default_id
 
+
+def check(email):
+    if not (match(regex, email)):
+        return False
+    return True
+
+
 if not target:
     exit('Recipient email address is mandatory!!!')
+
+if not check(email=target):
+    exit('Invalid email address received.')
 
 default_sub = f"This is the subject line sent at {date}"
 subject = input(f'Enter the subject of the email:\t(Hit return to default to {default_sub})\n')
