@@ -39,20 +39,29 @@ if not body:
 
 attachment = input('Enter the name of the attachment file:\t(Hit return for None)\n')
 
-if attachment and attachment.endswith('.html') and path.isfile(attachment):
-    cmd = f"echo '{body}' | mail -s '{sub}' --alternative --content-type=text/html --attach={attachment} {target}"
-elif attachment and path.isfile(attachment):
+cmd = None
+if attachment:
     title = "Please pick an attachment type: "
-    options = ['Inlined attachment', 'File attachment']
+    options = [
+        'Inlined attachment\tNote: Inlined attachments may end up in spam folder if they display a potential threat',
+        'File attachment'
+    ]
     try:
         option, index = pick(options, title, indicator='=>', default_index=0)
     except error:
         index = 1
-    if not index:
-        cmd = f"echo '{body}' | mail -s '{sub}' --alternative --content-type=text/plain --attach={attachment} {target}"
-    else:
-        cmd = f"echo '{body}' | mail -s '{sub}' --content-type=text/plain --attach={attachment} {target}"
-else:
+    if attachment.endswith('.html') and path.isfile(attachment):
+        if not index:
+            cmd = f"echo '{body}' | mail -s '{sub}' --alternative --content-type=text/html --attach={attachment} {target}"  # noqa
+        else:
+            cmd = f"echo '{body}' | mail -s '{sub}' --content-type=text/html --attach={attachment} {target}"
+    elif path.isfile(attachment):
+        if not index:
+            cmd = f"echo '{body}' | mail -s '{sub}' --alternative --content-type=text/plain --attach={attachment} {target}"  # noqa
+        else:
+            cmd = f"echo '{body}' | mail -s '{sub}' --content-type=text/plain --attach={attachment} {target}"
+
+if not cmd:
     cmd = f"echo '{body}' | mail -s '{sub}' {target}"
 
 response = system(cmd)
