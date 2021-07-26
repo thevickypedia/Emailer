@@ -1,5 +1,5 @@
 from datetime import datetime
-from os import environ, system
+from os import environ, path, system
 from re import match
 
 date = datetime.now().strftime("%B %d %Y %I:%M %p")
@@ -34,7 +34,15 @@ body = input('Enter body of the email:\n')
 if not body:
     body = ""
 
-cmd = f"echo '{body}' | mail -s '{subject}' {target}"  # This is the only command we care about
+attachment = input('Enter the name of the attachment file:\t(Hit return for None)\n')
+
+if attachment and attachment.endswith('.html') and path.isfile(attachment):
+    cmd = f"echo '{body}' | mail -s '{subject}' --alternative --content-type=text/html --attach={attachment} {target}"
+elif attachment and path.isfile(attachment):
+    cmd = f"echo '{body}' | mail -s '{subject}' --content-type=text/plain --attach={attachment} {target}"
+else:
+    cmd = f"echo '{body}' | mail -s '{subject}' {target}"
+
 response = system(cmd)
 
 if response == 0:
