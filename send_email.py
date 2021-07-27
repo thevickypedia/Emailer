@@ -1,6 +1,6 @@
 from _curses import error
 from datetime import datetime
-from os import environ, path, system
+from os import environ, getcwd, path, system
 from re import match
 
 from pick import pick
@@ -40,7 +40,9 @@ if not body:
 attachment = input('Enter the name of the attachment file:\t(Hit return for None)\n')
 
 cmd = None
-if attachment:
+if attachment and not path.isfile(attachment):
+    system(f'echo "Skipping attachment as {attachment} is not available at {getcwd()}"\n')
+elif attachment:
     title = "Please pick an attachment type: "
     options = [
         'Inlined attachment\tNote: Inlined attachments may end up in spam folder if they display a potential threat',
